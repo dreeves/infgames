@@ -1,0 +1,447 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     14467,        437]
+NotebookOptionsPosition[     13790,        413]
+NotebookOutlinePosition[     14222,        430]
+CellTagsIndexPosition[     14179,        427]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["\<\
+Daniel Reeves
+Graduate Workshop in Computational Economics at Santa Fe
+2000.06.19-07.01
+Strategic bidding in a synchronous k-double auction.\
+\>", "Text"],
+
+Cell[BoxData[
+ RowBox[{"(*", " ", 
+  RowBox[{
+  "CONSTANTS", " ", "**", "**", "**", "**", "**", "**", "**", "**", "**", "**",
+    "**", "**", "**", "**", "**", "**", "**", "**"}], "*****)"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"numAgents", "=", "5"}], ";"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{
+    "most", " ", "number", " ", "of", " ", "goods", " ", "an", " ", "agent", 
+     " ", "would", " ", "want", " ", "to", " ", 
+     RowBox[{"sell", "/", "buy"}], " ", "regardless", " ", "of", " ", 
+     "price"}], ";", " ", 
+    RowBox[{"not", " ", "currently", " ", "used"}]}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"qtyRange", "=", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"-", "100"}], ",", "100"}], "}"}]}], ";"}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"accessors", " ", "for", " ", "the", " ", "PQ", " ", 
+    RowBox[{"(", 
+     RowBox[{"price", "-", "quantity"}], ")"}], " ", "data", " ", 
+    "structure"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"price", "[", 
+     RowBox[{"pq", "[", 
+      RowBox[{"p_", ",", "q_"}], "]"}], "]"}], "^:=", "p"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"qty", "[", 
+     RowBox[{"pq", "[", 
+      RowBox[{"p_", ",", "q_"}], "]"}], "]"}], "^:=", "q"}]}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "generate", " ", "a", " ", "random", " ", "demand", " ", "schedule"}], " ",
+    "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"randomDemand", "[", "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", "randomPrices", "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"randomPrices", "=", 
+       RowBox[{"Sort", "[", 
+        RowBox[{"Table", "[", 
+         RowBox[{
+          RowBox[{"Random", "[", "]"}], ",", 
+          RowBox[{"{", "2", "}"}]}], "]"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"MapThread", "[", 
+       RowBox[{"pq", ",", 
+        RowBox[{"{", 
+         RowBox[{"randomPrices", ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "}"}]}], "]"}]}]}], 
+    "]"}]}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{
+    "find", " ", "the", " ", "clearing", " ", "price", " ", "in", " ", "a", 
+     " ", "k"}], "-", 
+    RowBox[{"double", " ", "auction", " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"default", " ", "k"}], "=", 
+       RowBox[{"1", " ", "=", 
+        RowBox[{">", " ", 
+         RowBox[{"mth", "-", "price"}]}]}]}], ")"}], " ", "given", " ", "a", 
+     " ", "list", " ", "of", " ", "price"}], "-", 
+    RowBox[{"quantity", " ", "points"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"clearPrice", "[", 
+    RowBox[{
+     RowBox[{"bids", ":", 
+      RowBox[{"{", "___pq", "}"}]}], ",", 
+     RowBox[{"k_:", "1"}]}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"m", ",", "cum", ",", "mthPrice", ",", "mPlusFirstPrice"}], 
+      "}"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"m", "=", 
+       RowBox[{"-", 
+        RowBox[{"Plus", "@@", 
+         RowBox[{"qty", "/@", 
+          RowBox[{"Select", "[", 
+           RowBox[{"bids", ",", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"qty", "[", "#", "]"}], "<", "0"}], "&"}]}], 
+           "]"}]}]}]}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"cum", "=", 
+       RowBox[{"FoldList", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"pq", "[", 
+           RowBox[{
+            RowBox[{"price", "[", "#2", "]"}], ",", 
+            RowBox[{
+             RowBox[{"Abs", "[", 
+              RowBox[{"qty", "[", "#1", "]"}], "]"}], "+", 
+             RowBox[{"Abs", "[", 
+              RowBox[{"qty", "[", "#2", "]"}], "]"}]}]}], "]"}], "&"}], ",", 
+         RowBox[{"First", "[", "bids", "]"}], ",", 
+         RowBox[{"Rest", "[", "bids", "]"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"cum", "=", 
+       RowBox[{"Select", "[", 
+        RowBox[{"cum", ",", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"qty", "[", "#", "]"}], "\[GreaterEqual]", "m"}], "&"}]}], 
+        "]"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"qty", "[", 
+          RowBox[{"Last", "[", "cum", "]"}], "]"}], "\[LessEqual]", "m"}], 
+        ",", 
+        RowBox[{"Return", "[", 
+         RowBox[{"-", "1"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
+      RowBox[{"mthPrice", "=", 
+       RowBox[{"price", "[", 
+        RowBox[{"First", "[", "cum", "]"}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{"mPlusFirstPrice", "=", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"qty", "[", 
+           RowBox[{"First", "[", "cum", "]"}], "]"}], ">", "m"}], ",", 
+         RowBox[{"price", "[", 
+          RowBox[{"First", "[", "cum", "]"}], "]"}], ",", 
+         RowBox[{"price", "[", 
+          RowBox[{"cum", "[", 
+           RowBox[{"[", "2", "]"}], "]"}], "]"}]}], "]"}]}], ";", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"k", "*", "mthPrice"}], "+", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"1", "-", "k"}], ")"}], "*", "mPlusFirstPrice"}]}]}]}], 
+    "]"}]}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{"Helper", " ", "function", " ", "for", " ", 
+     RowBox[{"transaction", ":", " ", 
+      RowBox[{
+       RowBox[{"takes", " ", "a", " ", "list", " ", "of", " ", "ID"}], "-", 
+       "buy", "-", 
+       RowBox[{
+       "point", " ", "pairs", " ", "sorted", " ", "by", " ", "decreasing", 
+        " ", "price", " ", "and", " ", "a", " ", "list", " ", "of", " ", 
+        "ID"}], "-", "sell", "-", 
+       RowBox[{
+       "point", " ", "pairs", " ", "sorted", " ", "by", " ", "increasing", 
+        " ", "price"}]}]}]}], ",", " ", 
+    RowBox[{
+    "and", " ", "returns", " ", "a", " ", "list", " ", "of", " ", 
+     "matches"}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"getMatches", "[", 
+     RowBox[{
+      RowBox[{"{", "}"}], ",", "_"}], "]"}], ":=", 
+    RowBox[{"{", "}"}]}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"getMatches", "[", 
+     RowBox[{"_", ",", 
+      RowBox[{"{", "}"}]}], "]"}], ":=", 
+    RowBox[{"{", "}"}]}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"getMatches", "[", 
+     RowBox[{
+      RowBox[{"sortedBuys", ":", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"idBuy_", ",", 
+           RowBox[{"pq", "[", 
+            RowBox[{"pBuy_", ",", "qBuy_"}], "]"}]}], "}"}], ",", 
+         "restBuys___"}], "}"}]}], ",", 
+      RowBox[{"sortedSells", ":", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"idSell_", ",", 
+           RowBox[{"pq", "[", 
+            RowBox[{"pSell_", ",", "qSell_"}], "]"}]}], "}"}], ",", 
+         "restSells___"}], "}"}]}]}], "]"}], ":=", 
+    RowBox[{"Module", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"transQty", ",", "newBuys", ",", "newSells"}], "}"}], ",", 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"pBuy", "<", "pSell"}], ",", 
+         RowBox[{"Return", "[", 
+          RowBox[{"{", "}"}], "]"}]}], "]"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"transQty", "=", 
+        RowBox[{"Min", "[", 
+         RowBox[{"qBuy", ",", 
+          RowBox[{"-", "qSell"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"newBuys", "=", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"qBuy", "-", "transQty"}], "\[Equal]", "0"}], ",", 
+          RowBox[{"{", "restBuys", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"idBuy", ",", 
+              RowBox[{"pq", "[", 
+               RowBox[{"pBuy", ",", 
+                RowBox[{"qBuy", "-", "transQty"}]}], "]"}]}], "}"}], ",", 
+            "restBuys"}], "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"newSells", "=", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"qSell", "+", "transQty"}], "\[Equal]", "0"}], ",", 
+          RowBox[{"{", "restSells", "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"idSell", ",", 
+              RowBox[{"pq", "[", 
+               RowBox[{"pSell", ",", 
+                RowBox[{"qSell", "+", "transQty"}]}], "]"}]}], "}"}], ",", 
+            "restSells"}], "}"}]}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"Prepend", "[", 
+        RowBox[{
+         RowBox[{"getMatches", "[", 
+          RowBox[{"newBuys", ",", "newSells"}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"{", 
+            RowBox[{"idBuy", ",", 
+             RowBox[{"pq", "[", 
+              RowBox[{"pBuy", ",", 
+               RowBox[{"qBuy", "-", "transQty"}]}], "]"}]}], "}"}], ",", 
+           RowBox[{"{", 
+            RowBox[{"idSell", ",", 
+             RowBox[{"pq", "[", 
+              RowBox[{"pSell", ",", 
+               RowBox[{"qSell", "+", "transQty"}]}], "]"}]}], "}"}]}], 
+          "}"}]}], "]"}]}]}], "]"}]}]}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{
+     RowBox[{
+     "Find", " ", "who", " ", "I", " ", "match", " ", "with", " ", "and", " ",
+       "return", " ", "the", " ", "price"}], "-", 
+     RowBox[{
+     "quantity", " ", "point", " ", "of", " ", "my", " ", "transaction"}]}], 
+    ",", " ", 
+    RowBox[{"ties", " ", "broken", " ", "arbitrarily"}]}], " ", "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"transaction", "[", 
+    RowBox[{
+     RowBox[{"myBid", ":", 
+      RowBox[{"{", "__pq", "}"}]}], ",", 
+     RowBox[{"otherBids", ":", 
+      RowBox[{"{", "__pq", "}"}]}]}], "]"}], ":=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"cp", ",", "allBids", ",", "buyBids", ",", "sellBids"}], "}"}], 
+     ",", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"cp", "=", 
+        RowBox[{"clearPrice", "[", 
+         RowBox[{"Join", "[", 
+          RowBox[{"myBid", ",", "otherBids"}], "]"}], "]"}]}], ";"}], 
+      "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"allBids", "=", 
+        RowBox[{"Join", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"me", ",", "#"}], "}"}], "&"}], "/@", "myBid"}], ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"other", ",", "#"}], "}"}], "&"}], "/@", "otherBids"}]}],
+          "]"}]}], ";"}], "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"buyBids", "=", 
+        RowBox[{"Sort", "[", 
+         RowBox[{
+          RowBox[{"Select", "[", 
+           RowBox[{"allBids", ",", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"qty", "[", 
+               RowBox[{"#", "[", 
+                RowBox[{"[", "2", "]"}], "]"}], "]"}], ">", "0"}], "&"}]}], 
+           "]"}], ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"price", "[", 
+             RowBox[{"#1", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], "]"}], ">", 
+            RowBox[{"price", "[", 
+             RowBox[{"#2", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], "]"}]}], "&"}]}], "]"}]}], 
+       ";"}], "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"sellBids", "=", 
+        RowBox[{"Sort", "[", 
+         RowBox[{
+          RowBox[{"Complement", "[", 
+           RowBox[{"allBids", ",", "buyBids"}], "]"}], ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"price", "[", 
+             RowBox[{"#1", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], "]"}], "<", 
+            RowBox[{"price", "[", 
+             RowBox[{"#2", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], "]"}]}], "&"}]}], "]"}]}], 
+       ";"}]}]}]}]}]}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"surplus", "[", 
+   RowBox[{
+    RowBox[{"resVals", ":", 
+     RowBox[{"{", "__pq", "}"}]}], ",", 
+    RowBox[{"pq", "[", 
+     RowBox[{"transPrice_", ",", "transQty_"}], "]"}]}], "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", "resPrice", "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"resPrice", "=", 
+      RowBox[{"price", "[", 
+       RowBox[{
+        RowBox[{"Select", "[", 
+         RowBox[{"resVals", ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"qty", "[", "#", "]"}], "\[Equal]", "transQty"}], "&"}], 
+          ",", "1"}], "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"transQty", ">", "0"}], ",", "1", ",", 
+        RowBox[{"-", "1"}]}], "]"}], "*", 
+      RowBox[{"(", 
+       RowBox[{"resPrice", "-", "transPrice"}], ")"}]}]}]}], "]"}]}]], "Input"]
+},
+WindowSize->{520, 743},
+WindowMargins->{{0, Automatic}, {Automatic, 28}},
+PrivateNotebookOptions->{"VersionedStylesheet"->{"Default.nb"[8.] -> False}},
+FrontEndVersion->"10.1 for Mac OS X x86 (32-bit, 64-bit Kernel) (March 23, \
+2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 164, 5, 87, "Text"],
+Cell[725, 27, 201, 4, 46, "Input"],
+Cell[929, 33, 75, 2, 28, "Input"],
+Cell[1007, 37, 531, 15, 80, "Input"],
+Cell[1541, 54, 552, 16, 80, "Input"],
+Cell[2096, 72, 866, 26, 80, "Input"],
+Cell[2965, 100, 3164, 89, 301, "Input"],
+Cell[6132, 191, 3961, 108, 420, "Input"],
+Cell[10096, 301, 2717, 80, 216, "Input"],
+Cell[12816, 383, 970, 28, 114, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
+
