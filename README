@@ -1,0 +1,5 @@
+Thanks so much for the interest in this work! I'm resurrecting it after 10 years so I apologize for my cluelessness about my own code but I'll just start with an FAQ here. Pull requests of course welcome!
+
+1. Some of these files refer to Equilibria.m and br.m -- where are those?
+
+I think I renamed Equilibria.m to MCSolver.m and br.m to Solver.m
